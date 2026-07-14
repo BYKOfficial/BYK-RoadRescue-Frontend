@@ -1,0 +1,98 @@
+/* GENERATED FILE — do not hand-edit. Source: design-tokens/tokens.json
+   Run `npm run tokens:build` (Style Dictionary) to regenerate. */
+
+:root,
+[data-theme='dark'] {
+  --color-bg-app: #0e1522;
+  --color-bg-surface: #16202f;
+  --color-bg-surface-raised: #212d3f;
+  --color-border-hairline: #263042;
+  --color-text-primary: #f4f6f8;
+  --color-text-muted: #8a96a6;
+  --color-brand-primary: #ff7a1a;
+  --color-brand-primary-pressed: #d9640f;
+  --color-status-success: #2fb670;
+  --color-status-warning: #f5c518;
+  --color-status-danger: #e23b3b;
+  --color-status-info: #5aa9e6;
+  --color-focus-ring: #ffa24d;
+  --color-overlay-scrim: rgba(14, 21, 34, 0.72);
+}
+
+[data-theme='light'] {
+  --color-bg-app: #edeeea;
+  --color-bg-surface: #ffffff;
+  --color-bg-surface-raised: #ffffff;
+  --color-border-hairline: #dadcd8;
+  --color-text-primary: #12161c;
+  --color-text-muted: #4a5460;
+  --color-brand-primary: #ff7a1a;
+  --color-brand-primary-pressed: #d9640f;
+  --color-status-success: #2fb670;
+  --color-status-warning: #f5c518;
+  --color-status-danger: #e23b3b;
+  --color-status-info: #2e7fc7;
+  --color-focus-ring: #ff7a1a;
+  --color-overlay-scrim: rgba(18, 22, 28, 0.55);
+}
+
+/* High-contrast: field-usability mode for bright outdoor sunlight / low-vision users.
+   Boosted luminance on every status color, pure black/white base, thicker focus ring. */
+[data-theme='hc'] {
+  --color-bg-app: #000000;
+  --color-bg-surface: #000000;
+  --color-bg-surface-raised: #000000;
+  --color-border-hairline: #ffffff;
+  --color-text-primary: #ffffff;
+  --color-text-muted: #ffffff;
+  --color-brand-primary: #ffb347;
+  --color-brand-primary-pressed: #ffb347;
+  --color-status-success: #4ade80;
+  --color-status-warning: #ffb347;
+  --color-status-danger: #ff5c5c;
+  --color-status-info: #ffffff;
+  --color-focus-ring: #ffb347;
+  --color-overlay-scrim: rgba(0, 0, 0, 0.9);
+}
+
+:root {
+  /* Typography */
+  --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --font-body: 'Inter', 'Noto Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SFMono-Regular', monospace;
+
+  --type-display-xl-size: 56px;   --type-display-xl-lh: 1.0;  --type-display-xl-weight: 600;
+  --type-display-lg-size: 36px;   --type-display-lg-lh: 1.05; --type-display-lg-weight: 600;
+  --type-display-md-size: 24px;   --type-display-md-lh: 1.1;  --type-display-md-weight: 600;
+  --type-body-md-size: 16px;      --type-body-md-lh: 1.5;     --type-body-md-weight: 400;
+  --type-body-sm-size: 14px;      --type-body-sm-lh: 1.5;     --type-body-sm-weight: 400;
+  --type-caption-size: 12px;      --type-caption-lh: 1.4;     --type-caption-weight: 500;
+  --type-mono-sm-size: 13px;      --type-mono-sm-lh: 1.4;     --type-mono-sm-weight: 500;
+
+  /* Spacing (4px base grid) */
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-7: 32px; --space-8: 40px;
+  --space-9: 48px; --space-10: 64px; --space-11: 80px; --space-12: 96px;
+
+  /* Radius */
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 16px; --radius-full: 999px;
+
+  /* Elevation */
+  --elevation-1: 0 1px 2px rgba(14, 21, 34, 0.08);
+  --elevation-2: 0 4px 12px rgba(14, 21, 34, 0.16);
+  --elevation-modal: 0 16px 48px rgba(14, 21, 34, 0.32);
+
+  /* Motion */
+  --motion-duration-fast: 120ms;
+  --motion-duration-base: 200ms;
+  --motion-duration-beacon: 1400ms;
+  --motion-easing-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration-fast: 1ms;
+    --motion-duration-base: 1ms;
+    --motion-duration-beacon: 1ms;
+  }
+}
