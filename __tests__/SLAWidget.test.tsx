@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import { SLAWidget } from '../src/components/dashboard/SLAWidget';
 
 const REFERENCE_WINDOW_MS = 30 * 60 * 1000;
@@ -41,7 +41,9 @@ describe('SLAWidget', () => {
     render(<SLAWidget slaDeadline={deadline} />);
     expect(screen.getByText('1:05')).toBeInTheDocument();
 
-    jest.advanceTimersByTime(5000);
+    act(() => {
+      jest.advanceTimersByTime(5000);
+    });
     expect(screen.getByText('1:00')).toBeInTheDocument();
   });
 });

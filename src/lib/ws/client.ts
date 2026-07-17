@@ -85,6 +85,10 @@ export class RealtimeClient {
     ws.onclose = () => {
       this.stopHeartbeat();
       if (this.closedByUser) return;
+      // Count THIS close as a failed attempt before deciding degraded vs.
+      // offline — checking before incrementing would let fallback polling
+      // kick in one full cycle later than `maxAttemptsBeforeFallback` promises.
+      this.attempt += 1;
       this.opts.onStateChange(
         this.attempt >= (this.opts.maxAttemptsBeforeFallback ?? 3) ? 'offline' : 'degraded'
       );
@@ -97,7 +101,6 @@ export class RealtimeClient {
   }
 
   private scheduleReconnect() {
-    this.attempt += 1;
     const jitter = 0.8 + Math.random() * 0.4; // +/-20%
     const delay = Math.min(MAX_DELAY_MS, BASE_DELAY_MS * 2 ** (this.attempt - 1)) * jitter;
     this.reconnectTimer = setTimeout(() => this.openSocket(), delay);

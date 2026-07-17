@@ -39,7 +39,7 @@ export function IncidentCard({ incident, onAssign, onSelect, isSelected }: Incid
         {incident.status === 'unassigned' && (
           <Button
             size="sm"
-            onClick={(e) => {
+            onClick={(e: React.MouseEvent) => {
               e.stopPropagation();
               onAssign(incident.jobId);
             }}

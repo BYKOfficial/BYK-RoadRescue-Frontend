@@ -1,5 +1,8 @@
 import { HTMLAttributes, ReactNode, useEffect, useRef } from 'react';
 
+export { Button } from './Button';
+export type { ButtonVariant, ButtonSize } from './Button';
+
 /* ---------------------------- Badge ---------------------------- */
 
 export type BadgeTone = 'success' | 'warning' | 'danger' | 'info' | 'neutral';
