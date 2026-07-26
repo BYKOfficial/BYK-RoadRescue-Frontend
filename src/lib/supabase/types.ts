@@ -29,13 +29,27 @@ export interface JobRow {
   lng: number;
   notes: string | null;
   technician_name: string | null;
+  technician_id: string | null;
   sla_deadline: string;
 }
 
-export type NewJobInput = Omit<JobRow, 'id' | 'created_at' | 'updated_at' | 'status' | 'technician_name'> & {
+export type NewJobInput = Omit<
+  JobRow,
+  'id' | 'created_at' | 'updated_at' | 'status' | 'technician_name' | 'technician_id'
+> & {
   status?: JobRowStatus;
   technician_name?: string | null;
+  technician_id?: string | null;
 };
+
+/** A technician account, as shown in the dispatcher's "assign" picker
+ * (see app/dispatch/page.tsx). Sourced from public.profiles where role
+ * = 'technician' — only readable by dispatcher/admin, per
+ * supabase/technician_migration.sql. */
+export interface TechnicianOption {
+  id: string;
+  full_name: string;
+}
 
 const SLA_MINUTES_BY_PRIORITY: Record<JobPriority, number> = {
   emergency: 5,

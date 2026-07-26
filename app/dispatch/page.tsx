@@ -7,9 +7,9 @@ import { AppShell, TopBar, SideNav } from '../../src/components/layout/AppShell'
 import { DispatchQueue } from '../../src/components/dashboard/DispatchQueue';
 import { useStore } from '../../src/store';
 import { supabase } from '../../src/lib/supabase/client';
-import type { JobRow } from '../../src/lib/supabase/types';
+import type { JobRow, TechnicianOption } from '../../src/lib/supabase/types';
 import type { IncidentQueueItem } from '../../src/store/slices/ops';
-import { Badge, Button, Card } from '../../src/components/primitives';
+import { Badge, Button, Card, Modal } from '../../src/components/primitives';
 
 const OPEN_STATUSES: JobRow['status'][] = ['requested', 'matched', 'en_route', 'arrived', 'in_progress'];
 
@@ -119,6 +119,38 @@ function AuthorizedDispatchQueue({ fullName, onSignOut }: { fullName: string; on
   const [realtimeStatus, setRealtimeStatus] = useState<'connecting' | 'subscribed' | 'error'>('connecting');
   const rowsRef = useRef<Map<string, JobRow>>(new Map());
 
+  // Real technician list for the "assign" picker below — replaces the old
+  // hardcoded demo name. Only dispatcher/admin can read this (see
+  // supabase/technician_migration.sql's dispatcher_admin_can_read_all_profiles).
+  const [technicians, setTechnicians] = useState<TechnicianOption[]>([]);
+  const [technicianLoadError, setTechnicianLoadError] = useState<string | null>(null);
+  const [assigningJobId, setAssigningJobId] = useState<string | null>(null);
+  const [assigning, setAssigning] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadTechnicians() {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .eq('role', 'technician')
+        .order('full_name', { ascending: true });
+
+      if (cancelled) return;
+      if (error) {
+        setTechnicianLoadError('Could not load the technician list (permission or network issue).');
+        return;
+      }
+      setTechnicians((data ?? []) as TechnicianOption[]);
+    }
+
+    loadTechnicians();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   function pushToStore() {
     const items = Array.from(rowsRef.current.values())
       .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
@@ -174,15 +206,27 @@ function AuthorizedDispatchQueue({ fullName, onSignOut }: { fullName: string; on
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function handleAssign(jobId: string) {
-    // Simplified stand-in for real matching (see 01-ARCHITECTURE.md Phase 2):
-    // no technician records or scoring exist yet, so this just demonstrates
-    // the real write-back path — the queue updates the instant this commits,
-    // via the same Realtime subscription, for every dispatcher watching it.
+  function handleAssign(jobId: string) {
+    // Opens the technician picker below instead of writing straight away —
+    // the real write happens in handleConfirmAssign once a technician is
+    // actually chosen. The queue still updates instantly for every dispatcher
+    // watching it, via the same Realtime subscription, once that write commits.
+    setAssigningJobId(jobId);
+  }
+
+  async function handleConfirmAssign(technician: TechnicianOption) {
+    if (!assigningJobId) return;
+    setAssigning(true);
     await supabase
       .from('jobs')
-      .update({ status: 'matched', technician_name: 'Assigned Technician (demo)' })
-      .eq('id', jobId);
+      .update({
+        status: 'matched',
+        technician_id: technician.id,
+        technician_name: technician.full_name,
+      })
+      .eq('id', assigningJobId);
+    setAssigning(false);
+    setAssigningJobId(null);
   }
 
   return (
@@ -215,6 +259,37 @@ function AuthorizedDispatchQueue({ fullName, onSignOut }: { fullName: string; on
         </p>
         <DispatchQueue onAssign={handleAssign} />
       </div>
+
+      <Modal
+        isOpen={assigningJobId !== null}
+        onClose={() => setAssigningJobId(null)}
+        title="Assign a technician"
+      >
+        {technicianLoadError ? (
+          <p className="byk-form-error" role="alert">{technicianLoadError}</p>
+        ) : technicians.length === 0 ? (
+          <p style={{ color: 'var(--color-text-muted)' }}>
+            No technician accounts yet. Create one in Supabase (Authentication → Users), then add
+            a matching row to <code>public.profiles</code> with role <code>technician</code>.
+          </p>
+        ) : (
+          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+            {technicians.map((tech) => (
+              <li key={tech.id}>
+                <Button
+                  variant="secondary"
+                  size="md"
+                  style={{ width: '100%', justifyContent: 'flex-start' }}
+                  disabled={assigning}
+                  onClick={() => handleConfirmAssign(tech)}
+                >
+                  {tech.full_name}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Modal>
     </AppShell>
   );
 }

@@ -44,7 +44,7 @@ export function IncidentCard({ incident, onAssign, onSelect, isSelected }: Incid
               onAssign(incident.jobId);
             }}
           >
-            Auto-assign nearest
+            Assign technician
           </Button>
         )}
       </div>
