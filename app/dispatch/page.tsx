@@ -28,6 +28,7 @@ function toIncidentQueueItem(row: JobRow): IncidentQueueItem {
 type AuthState =
   | { status: 'checking' }
   | { status: 'signed_out' }
+  | { status: 'wrong_role' }
   | { status: 'no_profile'; email: string }
   | { status: 'authorized'; email: string; fullName: string };
 
@@ -53,13 +54,15 @@ export default function DispatchPage() {
       }
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name')
+        .select('full_name, role')
         .eq('id', session.user.id)
         .maybeSingle();
 
       if (cancelled) return;
       if (!profile) {
         setAuth({ status: 'no_profile', email: session.user.email ?? '' });
+      } else if (profile.role === 'technician') {
+        setAuth({ status: 'wrong_role' });
       } else {
         setAuth({ status: 'authorized', email: session.user.email ?? '', fullName: profile.full_name });
       }
@@ -76,6 +79,7 @@ export default function DispatchPage() {
 
   useEffect(() => {
     if (auth.status === 'signed_out') router.push('/login');
+    if (auth.status === 'wrong_role') router.push('/technicians');
   }, [auth.status, router]);
 
   async function handleSignOut() {
@@ -83,7 +87,7 @@ export default function DispatchPage() {
     router.push('/login');
   }
 
-  if (auth.status === 'checking' || auth.status === 'signed_out') {
+  if (auth.status === 'checking' || auth.status === 'signed_out' || auth.status === 'wrong_role') {
     return (
       <main className="byk-request-page">
         <p style={{ color: 'var(--color-text-muted)' }}>Checking sign-in status…</p>

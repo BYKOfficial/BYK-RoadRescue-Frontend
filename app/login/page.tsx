@@ -25,16 +25,26 @@ export default function LoginPage() {
     setSubmitting(true);
     setError(null);
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
-    setSubmitting(false);
-
-    if (signInError) {
+    if (signInError || !signInData.session) {
+      setSubmitting(false);
       setError('Could not sign in — check your email and password and try again.');
       return;
     }
 
-    router.push('/dispatch');
+    // Route by role so each kind of staff account lands on the page built
+    // for it. If there's no profiles row yet (or the lookup fails), fall
+    // back to /dispatch — its own auth check shows the "not authorized yet"
+    // guidance, same as before this change.
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', signInData.session.user.id)
+      .maybeSingle();
+
+    setSubmitting(false);
+    router.push(profile?.role === 'technician' ? '/technicians' : '/dispatch');
   }
 
   return (
