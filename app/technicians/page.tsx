@@ -222,11 +222,35 @@ function AuthorizedTechnicianQueue({
   );
 }
 
+// Which status a technician can move a job to next, and what the button
+// says. Matches the "en_route/arrived/in_progress/completed" values the
+// technician_can_update_own_job_status RLS policy allows — anything not
+// listed here (matched, requested, completed, cancelled) has no button,
+// since that's either not reached yet or a terminal/dispatcher-only state.
+const NEXT_STATUS: Partial<Record<JobRow['status'], { next: JobRow['status']; label: string }>> = {
+  matched: { next: 'en_route', label: 'Start driving' },
+  en_route: { next: 'arrived', label: 'Mark arrived' },
+  arrived: { next: 'in_progress', label: 'Start job' },
+  in_progress: { next: 'completed', label: 'Mark complete' },
+};
+
 function TechnicianJobCard({ job }: { job: JobRow }) {
   const priorityTone = job.priority === 'emergency' ? 'danger' : job.priority === 'fleet_contract' ? 'info' : 'neutral';
   const statusTone = job.status === 'completed' ? 'success' : job.status === 'cancelled' ? 'neutral' : 'warning';
   const slaTime = new Date(job.sla_deadline).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const mapsUrl = `https://www.google.com/maps?q=${job.lat},${job.lng}`;
+  const advance = NEXT_STATUS[job.status];
+  const [updating, setUpdating] = useState(false);
+
+  async function handleAdvance() {
+    if (!advance) return;
+    setUpdating(true);
+    const { error } = await supabase.from('jobs').update({ status: advance.next }).eq('id', job.id);
+    // No manual local-state update needed on success — the Realtime
+    // subscription above receives this same write back and refreshes the
+    // card automatically, same as a dispatcher's change would.
+    if (error) setUpdating(false);
+  }
 
   return (
     <Card>
@@ -251,6 +275,19 @@ function TechnicianJobCard({ job }: { job: JobRow }) {
       {job.notes && (
         <p style={{ margin: 'var(--space-2) 0 0 0', color: 'var(--color-text-muted)' }}>{job.notes}</p>
       )}
+      {advance && (
+        <Button
+          variant="primary"
+          size="sm"
+          loading={updating}
+          disabled={updating}
+          style={{ marginTop: 'var(--space-3)' }}
+          onClick={handleAdvance}
+        >
+          {advance.label}
+        </Button>
+      )}
     </Card>
+
   );
 }
